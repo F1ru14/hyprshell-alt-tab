@@ -1,0 +1,12 @@
+(
+    version: 3,
+    windows: (
+        switch: (
+            modifier: "alt",
+            key: "Tab",
+            // all windows, in last-used order; use ["current_workspace"] to
+            // only cycle windows on the active workspace
+            filter_by: [],
+        ),
+    ),
+)

@@ -1,0 +1,16 @@
+[Unit]
+Description=hyprshell daemon (Alt+Tab switcher)
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
+ExecStart=%h/.local/bin/hyprshell run
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=graphical-session.target
