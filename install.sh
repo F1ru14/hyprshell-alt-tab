@@ -59,10 +59,21 @@ fi
 
 install -m644 "$script_dir/hyprshell.service" "$unitdir/hyprshell.service"
 
-# Stop the old rofi Alt+Tab from winning on DMS-managed setups.
-if [ -f "$HOME/.config/hypr/hyprland.conf" ] \
-    && ! grep -q '^unbind = ALT, Tab' "$HOME/.config/hypr/hyprland.conf"; then
-    printf '\n# hyprshell Alt+Tab\nunbind = ALT, Tab\n' >> "$HOME/.config/hypr/hyprland.conf"
+hypr_conf="$HOME/.config/hypr/hyprland.conf"
+if [ -f "$hypr_conf" ]; then
+    # Stop the old rofi Alt+Tab from winning on DMS-managed setups.
+    if ! grep -q '^unbind = ALT, Tab' "$hypr_conf"; then
+        printf '\n# hyprshell Alt+Tab\nunbind = ALT, Tab\n' >> "$hypr_conf"
+    fi
+    # Without the Hyprland plugin a fast Alt release can beat the switcher's
+    # keyboard grab and leave it open; close it from Hyprland as a safety net.
+    if ! grep -q 'hyprshell: close on Alt release' "$hypr_conf"; then
+        printf '\n# hyprshell: close on Alt release\n' >> "$hypr_conf"
+        for key in Alt_L Alt_R; do
+            printf 'bindrn = , %s, exec, %s socat '\''"CloseSwitch"'\''\n' \
+                "$key" "$bindir/hyprshell" >> "$hypr_conf"
+        done
+    fi
 fi
 
 systemctl --user daemon-reload

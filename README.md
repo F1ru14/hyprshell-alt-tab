@@ -60,6 +60,18 @@ binaries, which is why the script does not download them for older Hyprland.
 
 ## Troubleshooting
 
+### Alt+Tab sometimes leaves the switcher open
+
+hyprshell watches for the Alt release through a Hyprland plugin. Without the
+matching `hyprland-devel` headers it falls back to spawning a helper per key
+press, and a fast release can beat the switcher's keyboard grab. The installer
+adds `bindrn` binds that close the switcher on Alt release, so re-run
+`./install.sh`. To see which mode you are in:
+
+```bash
+journalctl --user -u hyprshell -n 30 | grep -i plugin
+```
+
 ```bash
 systemctl --user status hyprshell
 journalctl --user -u hyprshell -n 30
