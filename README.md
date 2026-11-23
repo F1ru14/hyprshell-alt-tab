@@ -58,31 +58,6 @@ binaries, which is why the script does not download them for older Hyprland.
 
 `version: 3` works on both branches; 4.10 migrates it on load.
 
-## Reinstalling Fedora
-
-Your settings are the three small files in this repo; keep the repo on GitHub
-and run `./install.sh` on the fresh system. The binary is rebuilt/reinstalled
-for that machine — do not copy `~/.local/bin/hyprshell` between machines, it is
-linked against that system's glibc/GTK.
-
-## After a Fedora or Hyprland upgrade
-
-An in-place Fedora upgrade keeps `~/.config` and usually keeps the binary
-working (glibc/GTK are ABI-compatible). After a big upgrade, check:
-
-```bash
-hyprctl version            # ≤0.56 legacy API, ≥0.57 Lua API
-hyprshell --version        # 4.9.5 or 4.10+
-systemctl --user status hyprshell
-```
-
-- Alt+Tab works → nothing to do.
-- Broke after a Fedora upgrade → `rm ~/.local/bin/hyprshell && ./install.sh`.
-- Hyprland moved to 0.57+ → same: delete the binary and re-run `./install.sh`
-  so it installs 4.10+ instead of 4.9.5.
-- DMS may rewrite `~/.config/hypr/dms/binds.conf` and bring back the rofi
-  Alt+Tab; the `unbind = ALT, Tab` line keeps it from firing.
-
 ## Troubleshooting
 
 ```bash
