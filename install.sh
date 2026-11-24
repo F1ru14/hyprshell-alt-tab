@@ -65,15 +65,23 @@ if [ -f "$hypr_conf" ]; then
     if ! grep -q '^unbind = ALT, Tab' "$hypr_conf"; then
         printf '\n# hyprshell Alt+Tab\nunbind = ALT, Tab\n' >> "$hypr_conf"
     fi
-    # Without the Hyprland plugin a fast Alt release can beat the switcher's
-    # keyboard grab and leave it open; close it from Hyprland as a safety net.
-    if ! grep -q 'hyprshell: close on Alt release' "$hypr_conf"; then
-        printf '\n# hyprshell: close on Alt release\n' >> "$hypr_conf"
-        for key in Alt_L Alt_R; do
-            printf 'bindrn = , %s, exec, %s socat '\''"CloseSwitch"'\''\n' \
-                "$key" "$bindir/hyprshell" >> "$hypr_conf"
-        done
+    # The service disables the Hyprland plugin (see hyprshell.service), so close
+    # the switcher from Hyprland on Alt release instead. The flags matter:
+    # - i (ignore mods): Hyprland still has Alt in the modmask on release
+    # - t (transparent): otherwise the bind is shadowed while Alt is held
+    # - n (non-consuming): don't swallow the normal Alt press
+    # Without them a quick Alt release before the overlay has keyboard focus
+    # leaves the switcher stuck (upstream issue #537).
+    close_marker='# hyprshell: close on Alt release'
+    if grep -qF "$close_marker" "$hypr_conf"; then
+        sed -i "\|^bindr[a-z]* = , Alt_[LR], exec, .*hyprshell socat.*CloseSwitch|d" "$hypr_conf"
+    else
+        printf '\n%s\n' "$close_marker" >> "$hypr_conf"
     fi
+    for key in Alt_L Alt_R; do
+        printf 'bindrtni = , %s, exec, %s socat '\''"CloseSwitch"'\''\n' \
+            "$key" "$bindir/hyprshell" >> "$hypr_conf"
+    done
 fi
 
 systemctl --user daemon-reload

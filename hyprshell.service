@@ -7,6 +7,10 @@ StartLimitBurst=3
 
 [Service]
 Type=simple
+# 4.9.5 builds its plugin at runtime, which needs gcc-c++ and Hyprland headers
+# matching the compositor; Fedora 42 ships neither. Exec binds plus the
+# bindrtni close binds in hyprland.conf handle Alt release instead.
+Environment=HYPRSHELL_NO_USE_PLUGIN=1
 ExecStartPre=/bin/sh -c '[ "$XDG_CURRENT_DESKTOP" = "Hyprland" ] || exit 0'
 ExecStart=%h/.local/bin/hyprshell run
 Restart=on-failure

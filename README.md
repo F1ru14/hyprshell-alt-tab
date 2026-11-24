@@ -60,17 +60,39 @@ binaries, which is why the script does not download them for older Hyprland.
 
 ## Troubleshooting
 
-### Alt+Tab sometimes leaves the switcher open
+### "Unable to load hyprland plugin" notification
 
-hyprshell watches for the Alt release through a Hyprland plugin. Without the
-matching `hyprland-devel` headers it falls back to spawning a helper per key
-press, and a fast release can beat the switcher's keyboard grab. The installer
-adds `bindrn` binds that close the switcher on Alt release, so re-run
-`./install.sh`. To see which mode you are in:
+hyprshell 4.9.5 compiles its C++ plugin on every start and Hyprland config
+reload. That build needs `gcc-c++` and Hyprland headers matching the running
+compositor; Fedora 42 ships no matching `hyprland-devel`, so it fails and the
+notification reappears each time. The service disables the plugin with
+`HYPRSHELL_NO_USE_PLUGIN=1`, so hyprshell uses exec binds instead. Alt+Tab works
+the same; the `bindrtni` binds close the switcher on Alt release.
+
+### Switcher stays open after a quick Alt+Tab
+
+Releasing Alt before the overlay gets keyboard focus used to leave the switcher
+on screen. hyprshell 4.9.5 only closes on the GTK key-release event, so the
+release went to the previously focused window instead. The release binds in
+`hyprland.conf` cover that gap.
+
+The flags on those binds are required: `bindrtni` = release, transparent,
+non-consuming, ignore-mods. With plain `bindrn`, Hyprland skips the bind because
+Alt is still in the modifier mask at release time, and shadows it while Alt is
+held. This is the same bug fixed upstream in hyprshell 4.10.10 (issue #537),
+which cannot run on Hyprland 0.55.
+
+If it still sticks, close it manually:
 
 ```bash
-journalctl --user -u hyprshell -n 30 | grep -i plugin
+hyprshell socat '"CloseSwitch"'
 ```
+
+Re-run `./install.sh` to replace old `bindrn` lines with `bindrtni` ones.
+
+If you have matching headers and want the plugin, drop the `Environment=` line
+from `~/.config/systemd/user/hyprshell.service`, install `gcc-c++` plus that
+`hyprland-devel`, and restart the service.
 
 ```bash
 systemctl --user status hyprshell
